@@ -26,7 +26,7 @@ final class SessionTests {
         let session = Session(id: .test, startTime: startTime, endTime: endTime)
         
         // Act
-        let duration = try #require(try? session.duration())
+        let duration = try session.duration()
         
         // Assert
         #expect(duration == 3600) // Duration should be 3600 seconds (1 hour) when endTime is set correctly.
@@ -53,7 +53,7 @@ final class SessionTests {
         let session = Session(id: .test, startTime: startTime, endTime: endTime)
         
         // Act
-        let duration = try #require(try? session.duration())
+        let duration = try session.duration()
         
         // Assert
         #expect(duration == 0) // Duration should be 0 seconds when endTime is equal to startTime.
