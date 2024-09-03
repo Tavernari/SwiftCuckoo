@@ -12,7 +12,6 @@ final class SessionTests {
         // Given
         let startTime = Date()
         let session = Session(id: .test, startTime: startTime)
-
         
         #expect(throws: Session.Error.missingEndTime, performing: {
             try session.duration()
