@@ -43,7 +43,7 @@ public struct Session: Equatable, Hashable {
     ///
     /// - Returns: The duration of the session as a `TimeInterval` representing
     ///   the time spent from the start time to the end time.
-    public func duration() throws(Session.Error) -> TimeInterval {
+    public func duration() throws -> TimeInterval {
         guard let endTime else {
             throw Error.missingEndTime
         }
