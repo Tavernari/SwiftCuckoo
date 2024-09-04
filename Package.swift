@@ -11,6 +11,10 @@ let package = Package(
             name: "SwiftCuckoo",
             targets: ["SwiftCuckoo"]),
     ],
+    dependencies: [
+            // Adding the Swift Testing library as a dependency
+            .package(url: "https://github.com/swiftlang/swift-testing.git", from: "0.9.0")
+    ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
@@ -18,6 +22,10 @@ let package = Package(
             name: "SwiftCuckoo"),
         .testTarget(
             name: "SwiftCuckooTests",
-            dependencies: ["SwiftCuckoo"]),
+            dependencies: [
+                "SwiftCuckoo",
+                .product(name: "Testing", package: "swift-testing"),
+            ]
+        ),
     ]
 )

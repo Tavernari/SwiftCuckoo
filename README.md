@@ -1,4 +1,6 @@
 # SwiftCuckoo
+![Build](https://github.com/tavernari/swiftcuckoo/actions/workflows/swift.yml/badge.svg)
+[![Maintainability](https://api.codeclimate.com/v1/badges/315d2f68bad03d358e42/maintainability)](https://codeclimate.com/github/Tavernari/SwiftCuckoo/maintainability)
 
 SwiftCuckoo is a time-tracking tool designed specifically for Swift developers to monitor the time spent on tasks or projects easily. The goal is to allow developers to track time intervals between different points in their work, providing valuable insights into productivity and time management.
 
