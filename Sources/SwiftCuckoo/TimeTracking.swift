@@ -7,5 +7,5 @@ public protocol TimeTracking {
     ///
     /// - Parameter taskID: The unique identifier for the task.
     /// - Returns: The `Date` representing the start time of the session.
-    func startTracking(sessionId: Session.Identifier) -> Date
+    static func startTracking(sessionId: Session.Identifier) -> Date
 }
