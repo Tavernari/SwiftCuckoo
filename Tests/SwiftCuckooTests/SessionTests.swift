@@ -1,5 +1,5 @@
 import Foundation
-import SwiftCuckoo
+@testable import SwiftCuckoo
 import Testing
 
 private extension Session.Identifier {
@@ -7,55 +7,164 @@ private extension Session.Identifier {
 }
 
 final class SessionTests {
-    @Test("Test duration when end time is nil")
-    func testDuration_whenEndTimeIsNil_shouldThrowMissingEndTimeError() {
-        // Given
-        let startTime = Date()
-        let session = Session(id: .test, startTime: startTime)
+    
+    /// Tests that starting a session sets the start time correctly.
+    @Test("Start session should set start time.")
+    func testStart_shouldSetStartTime() throws {
+        // Arrange: Create a new session and define the start time
+        let startTime: Date = .distantPast
+        var session = Session(id: .test)
         
-        #expect(throws: Session.Error.missingEndTime, performing: {
-            try session.duration()
-        })
+        // Act: Start the session at the specified start time
+        try session.start(on: startTime)
+        
+        // Assert: Verify that the session's start time is set correctly
+        #expect(
+            session.startTime == startTime,
+            "The session's start time should be set to the provided start time."
+        )
+    }
+
+    /// Tests that attempting to start an already started session throws an error.
+    @Test("Starting a session twice should throw an already started error.")
+    func testStartTwice_shouldThrowAlreadyStartedError() throws {
+        // Arrange: Create a new session and start it
+        var session = Session(id: .test)
+        try session.start()
+        
+        // Act & Assert: Attempt to start the session again and expect an error
+        #expect(
+            throws: Session.Error.cannotStartTwice,
+            "Starting a session that is already running should throw an error.",
+            performing: {
+                try session.start()
+            }
+        )
     }
     
-    @Test("Test duration when end time is set")
-    func testDuration_whenEndTimeIsSet_shouldReturnCorrectValue() throws {
-        // Given
-        let startTime = Date()
-        let endTime = startTime.addingTimeInterval(3600) // 1 hour later
-        let session = Session(id: .test, startTime: startTime, endTime: endTime)
+    /// Tests that stopping a session without starting it first throws an error.
+    @Test("Stopping a session without starting it should throw a missing start time error.")
+    func testStopWithoutStartSession_shouldThrowMissingStartTimeError() throws {
+        // Arrange: Create a new session without starting it
+        var session = Session(id: .test)
         
-        // Act
-        let duration = try session.duration()
-        
-        // Assert
-        #expect(duration == 3600) // Duration should be 3600 seconds (1 hour) when endTime is set correctly.
+        // Act & Assert: Attempt to stop the session and expect an error
+        #expect(
+            throws: Session.Error.shouldStartSession,
+            "Stopping a session that has not been started should throw an error.",
+            performing: {
+                try session.stop()
+            }
+        )
     }
     
-    @Test("Test duration when end time is earlier than start time")
-    func testDuration_whenEndTimeIsEarlierThanStartTime_shouldThrowEndTimeBeforeStartTimeError() {
-        // Given
-        let startTime = Date()
-        let endTime = startTime.addingTimeInterval(-3600) // 1 hour earlier
-        let session = Session(id: .test, startTime: startTime, endTime: endTime)
+    /// Tests that stopping a session sets the end time correctly.
+    @Test("Stopping a session should set the end time.")
+    func testStop_shouldSetEndTime() throws {
+        // Arrange: Create a new session and start it
+        let endTime: Date = .distantFuture
+        var session = Session(id: .test)
+        try session.start()
         
-        // Act & Assert
-        #expect(throws: Session.Error.endTimeBeforeStartTime, performing: {
-            try session.duration()
-        })
+        // Act: Stop the session at the specified end time
+        try session.stop(on: endTime)
+        
+        // Assert: Verify that the session's end time is set correctly
+        #expect(
+            session.endTime != nil,
+            "The session's end time should be set upon stopping the session."
+        )
     }
     
-    @Test("Test duration when end time is equal to start time")
-    func testDuration_whenEndTimeIsEqualToStartTime_shouldReturnZero() throws {
-        // Given
-        let startTime = Date()
-        let endTime = startTime // same time
-        let session = Session(id: .test, startTime: startTime, endTime: endTime)
+    /// Tests that requesting the duration of a session without starting it throws an error.
+    @Test("Requesting duration without starting a session should throw a missing start time error.")
+    func testDurationWithoutStartSession_shouldThrowMissingStartTimeError() throws {
+        // Arrange: Create a new session without starting it
+        let session = Session(id: .test)
         
-        // Act
-        let duration = try session.duration()
+        // Act & Assert: Attempt to get the duration and expect an error
+        #expect(
+            throws: Session.Error.shouldStartSession,
+            "Duration should not be calculable if the session has not started.",
+            performing: {
+                try session.duration()
+            }
+        )
+    }
+    
+    /// Tests that requesting the duration of a session that has started but not stopped throws an error.
+    @Test("Requesting duration with started but not stopped session should throw a missing end time error.")
+    func testDurationWithStartButNotStopSession_shouldThrowMissingEndTimeError() throws {
+        // Arrange: Create a new session and start it
+        var session = Session(id: .test)
+        try session.start()
         
-        // Assert
-        #expect(duration == 0) // Duration should be 0 seconds when endTime is equal to startTime.
+        // Act & Assert: Attempt to get the duration and expect an error
+        #expect(
+            throws: Session.Error.shouldStopSession,
+            "Duration should not be calculable without an end time.",
+            performing: {
+                try session.duration()
+            }
+        )
+    }
+    
+    /// Tests that requesting the duration of a session that has been both started and stopped returns the correct duration.
+    @Test("Requesting duration with started and stopped session should return a valid duration.")
+    func testDuringWithStartAndStopSession_shouldReturnDuration() throws {
+        // Arrange: Create a new session with defined start and end times
+        let startTime: Date = .distantPast
+        let endTime: Date = .distantFuture
+        var session = Session(id: .test)
+        try session.start(on: startTime)
+        
+        // Act: Stop the session at the specified end time
+        try session.stop(on: endTime)
+        
+        // Assert: Verify that the duration is greater than zero
+        #expect(
+            try session.duration() > 0,
+            "The duration of the session should be greater than zero."
+        )
+    }
+    
+    /// Tests that requesting the duration of a session where start and stop times are the same returns zero.
+    @Test("Requesting duration with started and stopped session having the same time should return zero.")
+    func testDuringWithStartAndStopSessionWithSameTime_shouldReturnZero() throws {
+        // Arrange: Create a new session with the same start and end time
+        let sameTime: Date = .distantPast
+        var session = Session(id: .test)
+        try session.start(on: sameTime)
+        
+        // Act: Stop the session at the same time
+        try session.stop(on: sameTime)
+        
+        // Assert: Verify that the duration is zero
+        #expect(
+            try session.duration() == 0,
+            "The duration should be zero when the start and stop times are the same."
+        )
+    }
+    
+    /// Tests that requesting the duration of a session where the start time is in the future throws an error.
+    @Test("Requesting duration where start time is in the future should throw a start time in future error.")
+    func testDurationWhereStartTimeIsInTheFuture_shouldThrowStartTimeInFutureError() throws {
+        // Arrange: Create a new session with a future start time and past end time
+        let startTime: Date = .distantFuture
+        let endTime: Date = .distantPast
+        var session = Session(id: .test)
+        try session.start(on: startTime)
+        
+        // Act: Attempt to stop the session at the past end time
+        try session.stop(on: endTime)
+        
+        // Assert: Verify that calculating the duration throws an error
+        #expect(
+            throws: Session.Error.invalidStartAndEndTimes,
+            "Duration calculation should fail when the start time is in the future.",
+            performing: {
+                try session.duration()
+            }
+        )
     }
 }
