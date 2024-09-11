@@ -17,6 +17,13 @@ SwiftCuckoo is a time-tracking tool designed specifically for Swift developers t
 
 *Instructions on how to install and set up the project will go here.*
 
+## Platforms
+
+- macOS 10.15+
+- iOS 13.0+
+
+These are the minimum platform versions required to run SwiftCuckoo.
+
 ## Usage
 
 *Instructions on how to use the tool will go here, including examples and code snippets if necessary.*
