@@ -9,7 +9,7 @@ SwiftCuckoo is a time-tracking tool designed specifically for Swift developers t
 - [ ] **Start & Stop Tracking**: Ability to start and stop time tracking for tasks.
 - [ ] **Lap Tracking**: Support for recording lap intervals to document different phases of a task.
 - [ ] **Real-time Task Consultation**: Ability to check any task tracked at any moment.
-- [ ] **Change Notifications**: Notify users when a time track changes. It should ppply observer for specific tasks.
+- [ ] **Change Notifications**: Notify users when a time track changes. It should apply observer for specific tasks.
 - [ ] **Data Storage**: Option to save specific task to time tracking data for future reference.
 - [ ] **Export & Report**: Functionality to export tracked time data for reporting purposes. (csv or json)
 
