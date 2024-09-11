@@ -7,7 +7,7 @@ public enum SessionManagerError: Error {
 
 /// A protocol that defines the required functionalities for session storage, enabling
 /// asynchronous operations for registering, removing, updating, and retrieving sessions.
-public protocol SessionManagerStorage: AnyActor {
+public protocol SessionManagerStorage: Sendable {
     /// Registers a new session in the storage.
     ///
     /// - Parameter session: The session instance to be registered.
