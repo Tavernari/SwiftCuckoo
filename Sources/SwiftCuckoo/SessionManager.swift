@@ -3,6 +3,7 @@ import Foundation
 /// Error types for the `SessionManager` related operations.
 public enum SessionManagerError: Error {
     case cannotStartSessionTwice  /// Indicates an attempt to start a session that is already running.
+    case noSessionRunning /// Indicates an attempt to stop a session that isn't running.
 }
 
 /// A protocol that defines the required functionalities for session storage, enabling
@@ -69,7 +70,27 @@ public struct SessionManager: TimeTracking {
             throw error
         }
     }
-    
+
+    /// Stops or pauses a session for the given session ID.
+    ///
+    /// If there is an existing session corresponding to the session ID, it attempts to stop it;
+    ///
+    /// - Parameter sessionId: The unique identifier for the session.
+    /// - Throws: An error of type `SessionManagerError` if there is an attempt
+    ///           to stop an session that doesn't exist.
+    /// - Returns: The `Date` representing the start time of the active or resumed session.
+    public func stopTracking(sessionId: Session.Identifier) async throws {
+        do {
+            guard var session = try await self.sessionManagerStorage.session(for: sessionId) else { throw SessionManagerError.noSessionRunning }
+            try session.stop()
+            try await self.sessionManagerStorage.update(session: session)
+        } catch Session.Error.shouldStartSession {
+            throw SessionManagerError.noSessionRunning
+        } catch {
+            throw error
+        }
+    }
+
     /// Retrieves a session by its identifier.
     ///
     /// - Parameter sessionId: The unique identifier for the session to retrieve.
