@@ -113,4 +113,31 @@ final class SessionManagerTests {
             }
         )
     }
+
+    /// Tests attempting to stop tracking a session
+    @Test("Stop tracking should not fail")
+    func testStopTracking() async throws {
+        // Arrange: Start tracking a session
+        try await sessionManager.startTracking(sessionId: .test)
+
+        // Assert: Verify that the session is now created
+        await #expect(try sessionManager.session(byId: .test) != nil,
+                       "Session with identifier test should be present after first start.")
+
+        // Arrange: Stop tracking a session
+        try await sessionManager.stopTracking(sessionId: .test)
+
+        // Assert: Verify that the session now has an end time
+        await #expect(try sessionManager.session(byId: .test)?.endTime != nil)
+    }
+
+    /// Test attempting to stop tracking a session that doens't exist
+    @Test("Stop tracking should fail")
+    func testStopTrackingFails() async throws {
+        // Act & Assert: Attempt to stop tracking and expect an error
+        await #expect(
+            throws: SessionManagerError.noSessionRunning, "Trying to stop a session that doesn't exist should throw an error", performing: {
+                try await sessionManager.stopTracking(sessionId: .test2)
+            })
+    }
 }
