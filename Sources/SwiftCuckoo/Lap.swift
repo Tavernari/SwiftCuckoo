@@ -6,6 +6,9 @@ import Foundation
 /// of a single lap, providing a way to monitor intervals within a task or session.
 public struct Lap: Equatable, Hashable {
 
+    /// A unique identifier for the lap instance.
+    public var id: Identifier
+
     /// The start time of the lap.
     public var startTime: Date
 
@@ -17,7 +20,8 @@ public struct Lap: Equatable, Hashable {
     /// - Parameters:
     ///   - startTime: The start time of the lap.
     ///   - endTime: The end time of the lap. Defaults to `nil` for ongoing laps.
-    public init(startTime: Date, endTime: Date? = nil) {
+    public init(id: Identifier, startTime: Date, endTime: Date? = nil) {
+        self.id = id
         self.startTime = startTime
         self.endTime = endTime
     }
@@ -51,6 +55,24 @@ public struct Lap: Equatable, Hashable {
     /// - Returns: A boolean indicating whether the lap is still running or has completed.
     public func isRunning() -> Bool {
         return self.endTime == nil
+    }
+}
+
+// MARK: - Identifier
+
+extension Lap {
+    /// A unique identifier for the session, conforming to `RawRepresentable`,
+    /// `Equatable`, and `Hashable` protocols for easy management and comparison.
+    public struct Identifier: RawRepresentable, Equatable, Hashable {
+        /// The raw string value representing the identifier.
+        public let rawValue: String
+
+        /// Initializes a new identifier with the specified raw value.
+        ///
+        /// - Parameter rawValue: The string value that represents the identifier.
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
     }
 }
 
