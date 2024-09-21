@@ -16,7 +16,7 @@ public struct Lap: Equatable, Hashable {
     public var id: Identifier
 
     /// The start time of the lap.
-    public var startTime: Date
+    public var startTime: Date?
 
     /// The optional end time of the lap. Defaults to `nil` if the lap is ongoing.
     public var endTime: Date?
@@ -26,7 +26,7 @@ public struct Lap: Equatable, Hashable {
     /// - Parameters:
     ///   - startTime: The start time of the lap.
     ///   - endTime: The end time of the lap. Defaults to `nil` for ongoing laps.
-    public init(id: Identifier, startTime: Date, endTime: Date? = nil) {
+    public init(id: Identifier, startTime: Date? = nil, endTime: Date? = nil) {
         self.id = id
         self.startTime = startTime
         self.endTime = endTime
@@ -58,6 +58,10 @@ public struct Lap: Equatable, Hashable {
     public func duration() throws -> TimeInterval {
         guard let endTime else {
             throw Error.lapActive
+        }
+
+        guard let startTime else {
+            throw Error.lapNotActive
         }
 
         return endTime.timeIntervalSince(startTime)
