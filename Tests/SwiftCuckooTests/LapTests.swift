@@ -2,10 +2,6 @@ import Foundation
 import Testing
 @testable import SwiftCuckoo
 
-private extension Lap.Identifier {
-    static let lapTest = Lap.Identifier(rawValue: "lapTest")
-}
-
 final class LapTests {
 
     /// Tests that starting a lap sets the start time
@@ -13,7 +9,7 @@ final class LapTests {
     func testStartLap() throws {
         // Arrange: Create a lap object with a defined start time
         let startTime: Date = .distantPast
-        var lap = Lap(id: .lapTest, startTime: startTime)
+        var lap = Lap(startTime: startTime)
 
         // Act: Start the lap
         try lap.start(on: startTime)
@@ -29,12 +25,12 @@ final class LapTests {
     func testStartingLapTwiceThrowsError() throws {
 
         // Arrange: Create new lap
-        var lap = Lap(id: .lapTest, startTime: .now)
+        var lap = Lap(startTime: .now)
         try lap.start()
 
         // Act & Assert: Attempt to start the lap again and expect an error
         #expect(
-            throws: Lap.Error.lapActive,
+            throws: Lap.Error.lapAlreadyStarted,
             "Starting a lap that is already active should throw an error",
             performing: {
                 try lap.start()
@@ -47,11 +43,11 @@ final class LapTests {
     func testStoppingInactiveLapThrowsError() throws {
 
         // Arrange: Create new lap
-        var lap = Lap(id: .lapTest, startTime: .now)
+        var lap = Lap(startTime: .now)
 
         // Act & Assert: Attempt to start the lap again and expect an error
         #expect(
-            throws: Lap.Error.lapNotActive,
+            throws: Lap.Error.tryingStopNonStartedLap,
             "Starting a lap that is already active should throw an error",
             performing: {
                 try lap.stop()
@@ -64,7 +60,7 @@ final class LapTests {
     func testStopLap() throws {
         // Arrange: Create a lap object and a defined end time
         let endTime: Date = .distantFuture
-        var lap = Lap(id: .lapTest, startTime: .now)
+        var lap = Lap(startTime: .now)
         try lap.start()
 
         // Act: Stop the lap
@@ -84,11 +80,11 @@ final class LapTests {
     @Test("Requesting duration without starting a lap should throw a lap not active error.")
     func testDurationWithoutStartTimeShouldThrowError() throws {
         // Arrange: Create a new lap without starting it
-        let lap = Lap(id: .lapTest)
+        let lap = Lap()
 
         // Act & Assert: Attempt to get the duration and expect an error
         #expect(
-            throws: Lap.Error.lapNotActive,
+            throws: Lap.Error.tryingStopNonStartedLap,
             "Duration should not be calculable if the lap has not started.",
             performing: {
                 try lap.duration()
@@ -100,12 +96,12 @@ final class LapTests {
     @Test("Requesting duration without ending a lap should throw a lap still active error.")
     func testDurationWithoutEndTimeShouldThrowError() throws {
         // Arrange: Create a new lap without starting it
-        var lap = Lap(id: .lapTest)
+        var lap = Lap()
         try lap.start(on: .now)
 
         // Act & Assert: Attempt to get the duration and expect an error
         #expect(
-            throws: Lap.Error.lapActive,
+            throws: Lap.Error.lapAlreadyStarted,
             "Duration should not be calculable if the lap has not ended.",
             performing: {
                 try lap.duration()
@@ -117,7 +113,7 @@ final class LapTests {
     @Test("Request duration with a lap that has a start and end time should return the correct duration")
     func testDurationWithValidLap() throws {
         // Arrange: Create new lap object, then start and end it
-        var lap = Lap(id: .lapTest)
+        var lap = Lap()
         try lap.start(on: .now)
         try lap.stop(on: .distantFuture)
 

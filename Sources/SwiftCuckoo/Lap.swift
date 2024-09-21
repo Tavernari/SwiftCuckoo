@@ -13,28 +13,28 @@ public struct Lap: Equatable, Hashable {
     }
 
     /// A unique identifier for the lap instance.
-    public var id: Identifier
+    private(set) var id: UUID
 
     /// The start time of the lap.
-    public var startTime: Date?
+    private(set) var startTime: Date?
 
     /// The optional end time of the lap. Defaults to `nil` if the lap is ongoing.
-    public var endTime: Date?
+    private(set) var endTime: Date?
 
     /// Initializes a new lap instance with a specified start time and an optional end time.
     ///
     /// - Parameters:
     ///   - startTime: The start time of the lap.
     ///   - endTime: The end time of the lap. Defaults to `nil` for ongoing laps.
-    public init(id: Identifier, startTime: Date? = nil, endTime: Date? = nil) {
-        self.id = id
+    public init(startTime: Date? = nil, endTime: Date? = nil) {
+        self.id = UUID()
         self.startTime = startTime
         self.endTime = endTime
     }
 
     public mutating func start(on date: Date = Date()) throws {
         guard lapStatus() == .inactive else {
-            throw Error.lapActive
+            throw Error.lapAlreadyStarted
         }
         self.startTime = date
     }
@@ -45,7 +45,7 @@ public struct Lap: Equatable, Hashable {
     /// - Throws: An error if the lap has already ended.
     public mutating func stop(on date: Date = Date()) throws {
         guard lapStatus() == .active else {
-            throw Error.lapNotActive
+            throw Error.tryingStopNonStartedLap
         }
 
         self.endTime = date
@@ -57,11 +57,11 @@ public struct Lap: Equatable, Hashable {
     /// - Returns: The duration of the lap as a `TimeInterval`.
     public func duration() throws -> TimeInterval {
         guard let endTime else {
-            throw Error.lapActive
+            throw Error.lapAlreadyStarted
         }
 
         guard let startTime else {
-            throw Error.lapNotActive
+            throw Error.tryingStopNonStartedLap
         }
 
         return endTime.timeIntervalSince(startTime)
@@ -72,29 +72,11 @@ public struct Lap: Equatable, Hashable {
     /// - Returns: The current status as a `LapStatus` enumerator indicating whether
     ///   the session is active, or inactive.
     public func lapStatus() -> LapStatus {
-        guard let endTime else {
+        guard endTime != nil else {
             return .active
         }
 
         return .inactive
-    }
-}
-
-// MARK: - Identifier
-
-extension Lap {
-    /// A unique identifier for the session, conforming to `RawRepresentable`,
-    /// `Equatable`, and `Hashable` protocols for easy management and comparison.
-    public struct Identifier: RawRepresentable, Equatable, Hashable {
-        /// The raw string value representing the identifier.
-        public let rawValue: String
-
-        /// Initializes a new identifier with the specified raw value.
-        ///
-        /// - Parameter rawValue: The string value that represents the identifier.
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
     }
 }
 
@@ -103,7 +85,7 @@ extension Lap {
 extension Lap {
     /// Error types specific to the `Lap` structure, used for error handling.
     public enum Error: CustomNSError {
-        case lapNotActive      /// Indicates that the lap is inactive.
-        case lapActive         /// Indicates that the lap is already active.
+        case tryingStopNonStartedLap      /// Indicates that the lap is stopped already..
+        case lapAlreadyStarted         /// Indicates that the lap is already started.
     }
 }
