@@ -167,4 +167,85 @@ final class SessionTests {
             }
         )
     }
+
+    /// Test that requesting to add a lap to a session is successful
+    @Test("Test that a session is able to start a lap")
+    func testSessionCanStartLap() throws {
+        // Arrange
+        var session = Session(id: .test)
+        try session.start()
+
+        // Act: Attempt to start and add a lap
+        var lap = try session.addLap()
+
+        // Assert: verify that the laps start time exists
+        #expect(
+            lap.startTime != nil,
+            "laps start time should not be nil"
+        )
+        #expect(
+            session.laps.count < 0,
+            "Session should have at least one lap"
+        )
+    }
+
+    /// Test that requesting to stop a lap to a session is successful
+    @Test("Test that a session is able to stop a lap")
+    func testSessionCanStopLap() throws {
+        // Arrange
+        var session = Session(id: .test)
+        try session.start()
+        var lap = try session.addLap()
+        let endTime: Date = .distantFuture
+
+        // Act: Attempt to stop a lap
+        try lap.stop(on: endTime)
+
+
+        // Assert: verify that the laps start time exists
+        #expect(
+            lap.endTime == endTime,
+            "laps start time should not be nil"
+        )
+    }
+
+    /// Test that requesting to stop a lap twice should throw an error
+    @Test("Test that a session is not able to stop a lap twice")
+    func testSessionCantStopLapTwice() throws {
+        // Arrange
+        var session = Session(id: .test)
+        try session.start()
+        var lap = try session.addLap()
+        let endTime: Date = .distantFuture
+
+        // Act: Attempt to stop a lap
+        try lap.stop(on: endTime)
+
+        #expect(
+            throws: Session.Error.tryingStopNonStartedLap,
+            "Stopping a lap twice should fail",
+            performing: {
+                try lap.stop()
+            }
+        )
+    }
+
+    /// Test that retrieving a lap will be successful
+    @Test("Test that a session able to retrieve a lap")
+    func testSessionGetLap() throws {
+        // Arrange
+        var session = Session(id: .test)
+        try session.start()
+        _ = try session.addLap()
+        _ = try session.addLap()
+
+
+        // Act: Attempt to stop a lap
+        let firstLap = session.getLap(id: 0)
+
+        #expect(
+            firstLap != nil,
+            "Calling get lap will return a lap"
+        )
+    }
 }
