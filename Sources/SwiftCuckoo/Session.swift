@@ -33,7 +33,6 @@ public struct Session: Equatable, Hashable {
     public var endTime: Date?
 
     /// Array of `Lap` which stores lap information
-    // TODO: Maybe fix docC
     private(set) var laps: [Lap]
 
     /// Initializes a new session instance with a unique identifier and an optional start time.
