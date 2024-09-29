@@ -32,6 +32,9 @@ public struct Session: Equatable, Hashable {
     /// was completed or could still be ongoing.
     public var endTime: Date?
 
+    /// Array of `Lap` which stores lap information
+    private(set) var laps: [Lap]
+
     /// Initializes a new session instance with a unique identifier and an optional start time.
     ///
     /// - Parameters:
@@ -44,6 +47,7 @@ public struct Session: Equatable, Hashable {
         self.id = id
         self.startTime = nil
         self.endTime = nil
+        self.laps = []
     }
     
     /// Starts the session at the specified date.
@@ -115,6 +119,60 @@ public struct Session: Equatable, Hashable {
         
         return .completed
     }
+
+    // MARK: - Session Lap Functions
+
+    /// Retrieves a specific lap based on its index in the collection.
+    ///
+    /// This function returns the lap at the specified index in the `laps` collection.
+    ///
+    /// - Parameter id: The index of the lap to be retrieved, starting from `0` for the first lap.
+    /// - Returns: An optional `Lap` instance. If the index is valid (within the range of the `laps` collection), it returns the `Lap` object; otherwise, returns `nil`.
+    public func getLap(id: Int) -> Lap? {
+        guard id >= 0 && id < laps.count else {
+            return nil
+        }
+        return laps[id]
+    }
+
+    /// Adds a new lap to the session and starts it.
+    ///
+    /// This function creates a new `Lap` instance with the current time as the start time. It attempts to start the lap, and if successful, appends it to the `laps` collection and returns the `Lap` instance.
+    ///
+    /// - Throws:
+    ///     - `Error.lapAlreadyStarted`: If the lap is already started. Although this scenario is unlikely since a new lap is created, the error is still handled for safety.
+    /// - Returns: The newly added `Lap` instance.
+    public mutating func addLap() throws -> Lap {
+        var lap = Lap(startTime: Date())
+
+        do {
+            try lap.start()
+        } catch Lap.Error.lapAlreadyStarted {
+            throw Error.lapAlreadyStarted
+        }
+
+        self.laps.append(lap)
+        return lap
+    }
+
+    /// Stops an existing lap based on the provided index.
+    ///
+    /// This function attempts to retrieve a lap at the specified index and stop it. If the lap has not been started yet,
+    /// an error will be thrown indicating that the lap cannot be stopped.
+    ///
+    /// - Parameter id: The index of the lap to be stopped, starting from `0` for the first lap.
+    /// - Throws:
+    ///     - `Error.tryingStopNonStartedLap`: If the function attempts to stop a lap that has not been started.
+    /// - Note: If the lap does not exist at the given index, this function will do nothing, as the `getLap(id:)` function returns `nil`.
+    public mutating func stopLap(id: Int) throws {
+        var lap = getLap(id: id)
+
+        do {
+            try lap?.stop()
+        } catch Lap.Error.tryingStopNonStartedLap {
+            throw Error.tryingStopNonStartedLap
+        }
+    }
 }
 
 // MARK: - Identifier
@@ -145,5 +203,7 @@ extension Session {
         case shouldStopSession                /// Indicates that the session should have been stopped before this action.
         case cannotStartTwice                 /// Indicates an attempt to start a session that is already running.
         case invalidStartAndEndTimes          /// Indicates an inconsistency between the start and end times.
+        case lapAlreadyStarted                /// Indicates that the session is unable to start/add a lap
+        case tryingStopNonStartedLap          /// Indicates that the session is unable to stop the lap
     }
 }
